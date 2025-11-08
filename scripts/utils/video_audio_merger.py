@@ -97,6 +97,8 @@ def merge_video_audio(
         
         # Audio codec and bitrate
         cmd.extend(["-c:a", audio_codec])
+        if audio_codec == "aac":
+            cmd.extend(["-strict", "-2"])  # For older FFmpeg versions
         if audio_codec != "copy":
             cmd.extend(["-b:a", audio_bitrate])
         
