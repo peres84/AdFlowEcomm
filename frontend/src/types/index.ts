@@ -3,15 +3,15 @@
  */
 
 export interface FormData {
-  productName: string;
+  product_name: string;
   category: string;
-  targetAudience: string;
-  mainBenefit: string;
-  brandColors: string[];
-  brandTone: string;
-  targetPlatform: string;
-  websiteUrl: string;
-  sceneDescription: string;
+  target_audience: string;
+  main_benefit: string;
+  brand_colors: string[];
+  brand_tone: string;
+  target_platform: string;
+  website_url: string;
+  scene_description: string;
 }
 
 export interface GeneratedImage {

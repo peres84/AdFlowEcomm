@@ -3,15 +3,9 @@ import { useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { getSessionId, setSessionId, hasSessionId } from './utils/session';
 import LandingPage from './pages/LandingPage';
+import OnboardingForm from './pages/OnboardingForm';
 
 // Placeholder components for routes (to be implemented in future tasks)
-
-const OnboardingForm = () => (
-  <div className="p-8 text-center">
-    <h2 className="text-2xl font-bold text-brand-blue">Onboarding Form</h2>
-    <p className="mt-2 text-sm text-gray-500">To be implemented</p>
-  </div>
-);
 
 const UploadPage = () => (
   <div className="p-8 text-center">
