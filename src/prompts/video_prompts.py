@@ -125,8 +125,9 @@ def parse_video_scenes_response(response_text: str) -> List[Dict[str, Any]]:
     """
     scenes = []
     
-    # Pattern to match scene sections
-    scene_pattern = r'\*\*SCENE\s+(\d+):\s*(.+?)\s*\((\d+)\s+seconds?\)\*\*(.+?)(?=\*\*SCENE\s+\d+:|$)'
+    # Pattern to match scene sections - more flexible to handle variations
+    # Matches: **SCENE 1: HOOK (5 seconds)** or **SCENE 1: HOOK (5 seconds - MUST BE EXACTLY 5 SECONDS)**
+    scene_pattern = r'\*\*SCENE\s+(\d+):\s*(.+?)\s*\((\d+)\s+seconds?[^)]*\)\*\*(.+?)(?=\*\*SCENE\s+\d+:|$)'
     
     matches = re.finditer(scene_pattern, response_text, re.DOTALL | re.IGNORECASE)
     
@@ -282,17 +283,28 @@ def generate_runware_video_scenes(
             {"role": "user", "content": user_prompt}
         ],
         temperature=0.7,
-        max_tokens=3000
+        max_tokens=4000  # Increased to handle all 4 scenes with detailed descriptions
     )
     
     response_text = response.choices[0].message.content
+    
+    # Check if response was truncated (indicates max_tokens limit reached)
+    if response.choices[0].finish_reason == "length":
+        print("⚠️  Warning: OpenAI response was truncated (max_tokens limit reached)")
+        print(f"   Response length: {len(response_text)} characters")
+        print("   This might cause incomplete scene parsing. Consider increasing max_tokens.")
     
     # Parse response
     scenes = parse_video_scenes_response(response_text)
     
     # Ensure we have exactly 4 scenes
     if len(scenes) < 4:
-        raise ValueError(f"Expected 4 scenes, but got {len(scenes)}. Response: {response_text}")
+        print(f"⚠️  Warning: Only found {len(scenes)} scenes in response")
+        print(f"   Response preview (first 500 chars): {response_text[:500]}...")
+        print(f"   Response length: {len(response_text)} characters")
+        if response.choices[0].finish_reason == "length":
+            print(f"   ⚠️  Response was TRUNCATED - this is likely a credits/token limit issue!")
+        raise ValueError(f"Expected 4 scenes, but got {len(scenes)}. Response may be truncated. Response length: {len(response_text)} chars. Response preview: {response_text[:1000]}...")
     
     # Ensure correct durations: 5s, 5s, 10s, 5s = 25s total
     expected_durations = [5, 5, 10, 5]
