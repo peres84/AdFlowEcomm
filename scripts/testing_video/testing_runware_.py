@@ -28,8 +28,9 @@ from PIL import Image
 # 🔧 CONFIGURATION
 # ---------------------------------------
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-ROOT_DIR = os.path.dirname(SCRIPT_DIR)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  # scripts/testing_video/
+SCRIPTS_DIR = os.path.dirname(SCRIPT_DIR)  # scripts/
+ROOT_DIR = os.path.dirname(SCRIPTS_DIR)  # project root
 ENV_PATH = os.path.join(ROOT_DIR, ".env")
 
 load_dotenv(ENV_PATH)
