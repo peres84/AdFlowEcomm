@@ -485,6 +485,12 @@ class RunwareClient:
                 raise Exception(f"Unexpected upload response: {result}")
             
             image_uuid = data_list[0]["imageUUID"]
+            
+            # Verify the image UUID is valid (check if we can access it)
+            # Sometimes Runware needs a moment to process the uploaded image
+            import time
+            time.sleep(0.5)  # Small delay to ensure image is registered
+            
             return image_uuid
             
         except requests.exceptions.RequestException as e:

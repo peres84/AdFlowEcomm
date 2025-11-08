@@ -21,7 +21,7 @@ Example:
 
 import subprocess
 import os
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 
 def merge_video_audio(
@@ -346,3 +346,258 @@ def quick_merge(video_path: str, audio_path: str, output_path: str) -> bool:
         bool: True if successful
     """
     return merge_video_audio(video_path, audio_path, output_path)
+
+
+def concatenate_videos(
+    video_paths: List[str],
+    output_path: str,
+    temp_dir: Optional[str] = None,
+    overwrite: bool = True,
+    verbose: bool = False
+) -> bool:
+    """
+    Concatenate multiple videos into a single video using FFmpeg concat demuxer.
+    
+    This is a lossless operation that preserves quality without re-encoding.
+    
+    Args:
+        video_paths: List of video file paths in order
+        output_path: Path for final concatenated video
+        temp_dir: Directory for temporary concat file (default: same as output)
+        overwrite: Overwrite output file if exists
+        verbose: Print FFmpeg output
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    if not video_paths:
+        raise ValueError("video_paths cannot be empty")
+    
+    for video_path in video_paths:
+        if not os.path.exists(video_path):
+            raise FileNotFoundError(f"Video not found: {video_path}")
+    
+    if temp_dir is None:
+        temp_dir = os.path.dirname(output_path) or "."
+    
+    # Create concat file
+    import uuid
+    concat_file = os.path.join(temp_dir, f"concat_list_{uuid.uuid4().hex[:8]}.txt")
+    
+    try:
+        with open(concat_file, "w") as f:
+            for video_path in video_paths:
+                abs_path = os.path.abspath(video_path)
+                escaped_path = abs_path.replace("'", "'\\''")
+                f.write(f"file '{escaped_path}'\n")
+        
+        cmd = [
+            "ffmpeg",
+            "-f", "concat",
+            "-safe", "0",
+            "-i", concat_file,
+            "-c", "copy",  # No re-encoding (lossless)
+            "-y" if overwrite else "-n",
+            output_path
+        ]
+        
+        if verbose:
+            print(f"Concatenating {len(video_paths)} videos...")
+        
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        
+        if verbose and result.stdout:
+            print(f"FFmpeg output: {result.stdout}")
+        
+        return True
+        
+    except subprocess.CalledProcessError as e:
+        print(f"FFmpeg concatenation error: {e.stderr}")
+        return False
+    except FileNotFoundError:
+        print("FFmpeg not found. Please install FFmpeg:")
+        print("  Windows: choco install ffmpeg")
+        print("  Mac: brew install ffmpeg")
+        print("  Linux: apt-get install ffmpeg")
+        return False
+    except Exception as e:
+        print(f"Concatenation failed: {str(e)}")
+        return False
+    finally:
+        if os.path.exists(concat_file):
+            try:
+                os.unlink(concat_file)
+            except:
+                pass
+
+
+def concatenate_videos_with_transitions(
+    video_paths: List[str],
+    output_path: str,
+    transition_duration: float = 0.3,
+    temp_dir: Optional[str] = None,
+    overwrite: bool = True,
+    verbose: bool = False
+) -> bool:
+    """
+    Concatenate multiple videos with crossfade transitions between them.
+    
+    Uses FFmpeg's xfade filter for video crossfades (frames blend into each other)
+    and acrossfade filter for audio crossfades (smooth audio transitions).
+    
+    Args:
+        video_paths: List of video file paths in order
+        output_path: Path for final concatenated video
+        transition_duration: Duration of crossfade transition in seconds (default: 0.3)
+        temp_dir: Directory for temporary files (default: same as output)
+        overwrite: Overwrite output file if exists
+        verbose: Print FFmpeg output
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    if not video_paths:
+        raise ValueError("video_paths cannot be empty")
+    
+    if len(video_paths) < 2:
+        if verbose:
+            print("Only one video provided, copying without transitions")
+        try:
+            import shutil
+            shutil.copy2(video_paths[0], output_path)
+            return True
+        except Exception as e:
+            print(f"Failed to copy video: {str(e)}")
+            return False
+    
+    for video_path in video_paths:
+        if not os.path.exists(video_path):
+            raise FileNotFoundError(f"Video not found: {video_path}")
+    
+    if temp_dir is None:
+        temp_dir = os.path.dirname(output_path) or "."
+    
+    try:
+        num_videos = len(video_paths)
+        
+        # Get video durations
+        video_durations = []
+        for i, video_path in enumerate(video_paths):
+            info = get_video_info(video_path)
+            if info and "format" in info and "duration" in info["format"]:
+                duration = float(info["format"]["duration"])
+                video_durations.append(duration)
+            else:
+                if verbose:
+                    print(f"⚠️  Could not get duration for {os.path.basename(video_path)}, assuming 10s")
+                video_durations.append(10.0)
+        
+        # Build input list
+        inputs = []
+        for video_path in video_paths:
+            abs_path = os.path.abspath(video_path)
+            inputs.extend(["-i", abs_path])
+        
+        # Build filter complex for crossfades
+        filter_parts = []
+        
+        # Prepare each video stream (normalize, scale, format)
+        for i in range(num_videos):
+            filter_parts.append(
+                f"[{i}:v]setpts=PTS-STARTPTS,scale=1920:1080:force_original_aspect_ratio=decrease,"
+                f"pad=1920:1080:(ow-iw)/2:(oh-ih)/2,format=yuv420p[v{i}]"
+            )
+            filter_parts.append(
+                f"[{i}:a]asetpts=PTS-STARTPTS[a{i}]"
+            )
+        
+        # Chain crossfades for video and audio
+        if num_videos == 1:
+            final_video = "[v0]"
+            final_audio = "[a0]"
+        else:
+            # First transition
+            offset = video_durations[0] - transition_duration
+            filter_parts.append(
+                f"[v0][v1]xfade=transition=fade:duration={transition_duration}:offset={offset}[vx1]"
+            )
+            filter_parts.append(
+                f"[a0][a1]acrossfade=d={transition_duration}[ax1]"
+            )
+            
+            # Chain remaining transitions
+            cumulative = video_durations[0] + video_durations[1] - 2 * transition_duration
+            for i in range(2, num_videos):
+                offset = cumulative - transition_duration
+                filter_parts.append(
+                    f"[vx{i-1}][v{i}]xfade=transition=fade:duration={transition_duration}:offset={offset}[vx{i}]"
+                )
+                filter_parts.append(
+                    f"[ax{i-1}][a{i}]acrossfade=d={transition_duration}[ax{i}]"
+                )
+                cumulative += video_durations[i] - transition_duration
+            
+            final_video = f"[vx{num_videos-1}]"
+            final_audio = f"[ax{num_videos-1}]"
+        
+        filter_complex = ";".join(filter_parts)
+        
+        cmd = [
+            "ffmpeg",
+            *inputs,
+            "-filter_complex", filter_complex,
+            "-map", final_video,
+            "-map", final_audio,
+            "-c:v", "libx264",
+            "-c:a", "aac",
+            "-preset", "medium",
+            "-crf", "23",
+            "-y" if overwrite else "-n",
+            output_path
+        ]
+        
+        if verbose:
+            print(f"Applying crossfade transitions (duration: {transition_duration}s)...")
+            print(f"Processing {num_videos} videos with frame blending...")
+        
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        
+        if verbose:
+            if result.stdout:
+                print(f"FFmpeg output: {result.stdout}")
+        
+        return True
+        
+    except subprocess.CalledProcessError as e:
+        print(f"FFmpeg transition error: {e.stderr}")
+        if verbose:
+            print(f"Command: {' '.join(cmd)}")
+        if verbose:
+            print("⚠️  Crossfade failed, trying simple concatenation...")
+        return concatenate_videos(video_paths, output_path, temp_dir, overwrite, verbose)
+    
+    except FileNotFoundError:
+        print("FFmpeg not found. Please install FFmpeg:")
+        print("  Windows: choco install ffmpeg")
+        print("  Mac: brew install ffmpeg")
+        print("  Linux: apt-get install ffmpeg")
+        return False
+    
+    except Exception as e:
+        print(f"Transition concatenation failed: {str(e)}")
+        if verbose:
+            import traceback
+            traceback.print_exc()
+        if verbose:
+            print("⚠️  Falling back to simple concatenation...")
+        return concatenate_videos(video_paths, output_path, temp_dir, overwrite, verbose)

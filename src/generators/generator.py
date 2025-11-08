@@ -53,8 +53,8 @@ class AssetGenerator:
             Path to extracted frame image, or None if failed
         """
         try:
-            # Create temporary file for frame
-            frame_path = str(self.output_dir / f"last_frame_{os.path.basename(video_path).replace('.mp4', '.png')}")
+            # Create temporary file for frame - always use PNG format for Runware compatibility
+            frame_path = str(self.output_dir / f"last_frame_{os.path.basename(video_path).replace('.mp4', '')}.png")
             
             # Use FFmpeg to extract last frame
             # -ss -0.1 means go to 0.1 seconds before the end
@@ -81,15 +81,23 @@ class AssetGenerator:
             result = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
             duration = float(result.stdout.strip())
             
-            # Extract frame 0.1 seconds before the end
+            # Extract frame 0.1 seconds before the end and scale to 1920x1080
+            # This ensures the frame matches video dimensions for Runware
+            # Force PNG format for better compatibility with Runware
             extract_cmd = [
                 "ffmpeg",
                 "-i", video_path,
                 "-ss", str(max(0, duration - 0.1)),
+                "-vf", "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2",
                 "-vframes", "1",
+                "-f", "image2",  # Force image format
                 "-y",
                 frame_path
             ]
+            
+            # Ensure output is PNG format
+            if not frame_path.endswith('.png'):
+                frame_path = frame_path.replace('.jpg', '.png').replace('.jpeg', '.png')
             
             subprocess.run(extract_cmd, capture_output=True, check=True)
             
@@ -348,7 +356,7 @@ class AssetGenerator:
                 image_uuid = previous_frame_uuid
                 print(f"   🖼️  Using last frame from previous video as first frame")
             # Priority 2: Use generated image matching this scene
-            elif generated_images and len(generated_images) > 0:
+            if not image_uuid and generated_images and len(generated_images) > 0:
                 # Use modulo to cycle through images if more scenes than images
                 image_index = (i - 1) % len(generated_images)
                 matched_image = generated_images[image_index]
@@ -360,14 +368,52 @@ class AssetGenerator:
                     print(f"   ⚠️  No image UUID available for scene {scene_num}, using text-only generation")
             
             # Generate video with optional image as first frame
-            video_result = self.runware.generate_video(
-                prompt=video_prompt,
-                model=model,
-                duration=duration,
-                width=width,
-                height=height,
-                image_uuid=image_uuid
-            )
+            # If previous_frame_uuid fails, retry with generated image
+            max_retries = 2
+            retry_count = 0
+            video_result = None
+            
+            while retry_count <= max_retries:
+                try:
+                    video_result = self.runware.generate_video(
+                        prompt=video_prompt,
+                        model=model,
+                        duration=duration,
+                        width=width,
+                        height=height,
+                        image_uuid=image_uuid
+                    )
+                    break  # Success, exit retry loop
+                except Exception as e:
+                    error_str = str(e)
+                    # Check if it's a failedToTransferImage error (400)
+                    if "failedToTransferImage" in error_str or ("400" in error_str and "failedToTransfer" in error_str):
+                        retry_count += 1
+                        # If using previous_frame_uuid failed, try with generated image instead
+                        if image_uuid == previous_frame_uuid and generated_images and len(generated_images) > 0:
+                            print(f"   ⚠️  Failed to use last frame (attempt {retry_count}/{max_retries}), trying generated image...")
+                            image_index = (i - 1) % len(generated_images)
+                            matched_image = generated_images[image_index]
+                            fallback_uuid = matched_image.get("image_uuid")
+                            if fallback_uuid:
+                                image_uuid = fallback_uuid
+                                print(f"   🖼️  Using generated image {image_index + 1} as first frame (fallback)")
+                                continue  # Retry with fallback image
+                        elif retry_count <= max_retries:
+                            # Wait a bit longer and retry with same image
+                            import time
+                            wait_time = 2 * retry_count  # Exponential backoff: 2s, 4s
+                            print(f"   ⏳ Image may not be ready yet, waiting {wait_time}s before retry {retry_count}/{max_retries}...")
+                            time.sleep(wait_time)
+                            continue
+                    # If it's not a transfer error or we've exhausted retries, raise
+                    if retry_count > max_retries:
+                        raise
+                    else:
+                        retry_count += 1
+            
+            if video_result is None:
+                raise Exception("Failed to generate video after all retries")
             
             # Handle async task - Runware always uses async for videos
             task_uuid = video_result.get("taskUUID")
@@ -393,13 +439,17 @@ class AssetGenerator:
                 print(f"   ⚠️  No video URL in result: {video_result.keys()}")
             
             # Extract last frame for next video (if use_last_frame=True and not last scene)
-            if use_last_frame and video_path and i < len(scenes):
+            if use_last_frame and video_path and i < len(scenes) - 1:
                 print(f"   🎬 Extracting last frame for next video...")
                 last_frame_path = self._extract_last_frame(video_path)
                 if last_frame_path:
                     try:
                         previous_frame_uuid = self.runware.upload_image(last_frame_path)
                         print(f"   ✅ Last frame uploaded: {previous_frame_uuid}")
+                        # Longer delay to ensure image is fully processed by Runware before use
+                        # Runware needs time to process the uploaded image and make it accessible
+                        import time
+                        time.sleep(3)  # Increased from 1s to 3s for better reliability
                         # Clean up temporary frame file
                         try:
                             os.unlink(last_frame_path)
