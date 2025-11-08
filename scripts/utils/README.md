@@ -564,3 +564,178 @@ GET /api/download-video/:taskId
 - **API Flow Guide:** `../documentation/VIDEO_RW_API_FLOW.md` - Complete step-by-step Runware API integration
 - **Model Reference:** `../documentation/video_models.md` - Available models and configurations
 - **Product Specs:** `../product-guidelines/` - Complete ProductFlow specifications
+
+
+---
+
+### 6. File Helpers (`file_helpers.py`) ✨ NEW
+
+**Purpose:** Common file and directory operations
+
+**Main Functions:**
+```python
+from scripts.utils.file_helpers import (
+    ensure_directory,
+    find_first_file,
+    download_file,
+    resolve_project_paths
+)
+
+# Ensure directory exists
+ensure_directory("results")
+
+# Find first video in folder
+video = find_first_file("vid_test", ['.mp4', '.avi'])
+
+# Download file from URL
+download_file("https://example.com/file.mp4", "output.mp4")
+
+# Resolve project paths
+script_dir, scripts_dir, root_dir, env_path = resolve_project_paths(__file__)
+```
+
+**All Functions:**
+- `ensure_directory()` - Create directory if doesn't exist
+- `find_files_by_extension()` - Find all files with specific extensions
+- `find_first_file()` - Find first file (alphabetically)
+- `download_file()` - Download from URL with progress
+- `get_file_size_mb()` - Get file size in MB
+- `resolve_project_paths()` - Resolve standard project paths
+
+**Constants:**
+- `VIDEO_EXTENSIONS` - Common video formats
+- `IMAGE_EXTENSIONS` - Common image formats
+- `AUDIO_EXTENSIONS` - Common audio formats
+
+**Features:**
+- Automatic directory creation
+- File discovery and filtering
+- Progress indication for downloads
+- Path resolution for nested scripts
+
+**Use Case:** File management across all testing scripts
+
+---
+
+### 7. API Helpers (`api_helpers.py`) ✨ NEW
+
+**Purpose:** Common API operations and utilities
+
+**Main Functions:**
+```python
+from scripts.utils.api_helpers import (
+    generate_task_uuid,
+    encode_image_base64,
+    build_runware_headers,
+    build_mirelo_headers,
+    validate_api_key
+)
+
+# Generate UUID for API task
+task_id = generate_task_uuid()
+
+# Encode image for upload
+b64_image = encode_image_base64("product.jpg")
+
+# Build API headers
+runware_headers = build_runware_headers(api_key)
+mirelo_headers = build_mirelo_headers(api_key)
+
+# Validate API key
+if not validate_api_key(api_key, "Runware"):
+    return
+```
+
+**All Functions:**
+- `generate_task_uuid()` - Generate UUID v4 for tasks
+- `encode_image_base64()` - Encode image to base64
+- `build_runware_headers()` - Build Runware API headers
+- `build_mirelo_headers()` - Build Mirelo API headers
+- `extract_response_data()` - Extract data from API response
+- `find_task_in_response()` - Find specific task by UUID
+- `check_api_error()` - Check for errors in response
+- `format_api_error()` - Format error for display
+- `validate_api_key()` - Validate API key presence
+- `build_image_upload_payload()` - Build image upload payload
+
+**Features:**
+- Consistent API request building
+- Response parsing with fallbacks
+- Error handling and formatting
+- UUID generation
+- Base64 encoding
+
+**Use Case:** API operations for Runware, Mirelo, and other services
+
+---
+
+## 🎯 Quick Decision Guide (Updated)
+
+**Need to resize an image?**
+→ Use `resizer_img.py`
+
+**Need to convert image format?**
+→ Use `extension_changer_img.py`
+
+**Need to generate a single video?**
+→ Use `video_helpers.py`
+
+**Need to generate 4-scene product video?**
+→ Use `scene_generator.py`
+
+**Need to merge video and audio?**
+→ Use `video_audio_merger.py`
+
+**Need file/directory operations?** ✨
+→ Use `file_helpers.py`
+
+**Need API request helpers?** ✨
+→ Use `api_helpers.py`
+
+---
+
+## 📊 Utility Summary
+
+| Utility | Purpose | Key Functions |
+|---------|---------|---------------|
+| `resizer_img.py` | Image resizing | `resize_image()`, `validate_dimensions()` |
+| `extension_changer_img.py` | Format conversion | `convert_image_format()`, `convert_for_api()` |
+| `video_helpers.py` | Video generation | `RunwareVideoHelper` class |
+| `scene_generator.py` | Multi-scene videos | `MultiSceneGenerator` class |
+| `video_audio_merger.py` | Video+audio merging | `merge_video_audio()`, `replace_audio()` |
+| `file_helpers.py` ✨ | File operations | `ensure_directory()`, `find_first_file()` |
+| `api_helpers.py` ✨ | API utilities | `generate_task_uuid()`, `build_*_headers()` |
+
+---
+
+## 🔄 Refactoring Opportunities
+
+The new utilities (`file_helpers.py` and `api_helpers.py`) extract common patterns from:
+- `scripts/testing_video/testing_runware_.py`
+- `scripts/testing_audio/testing_mirelo.py`
+- `scripts/testing_image/dynamic_campaign.py`
+
+**Benefits:**
+- ✅ Reduced code duplication
+- ✅ Consistent error handling
+- ✅ Easier maintenance
+- ✅ Reusable across all scripts
+- ✅ Better testing capabilities
+
+**Example Refactoring:**
+
+**Before:**
+```python
+# In testing_mirelo.py
+def ensure_results_folder():
+    if not os.path.exists(RESULTS_DIR):
+        os.makedirs(RESULTS_DIR)
+        print(f"📁 Created folder: {RESULTS_DIR}")
+```
+
+**After:**
+```python
+from scripts.utils.file_helpers import ensure_directory
+
+ensure_directory(RESULTS_DIR)
+```
