@@ -1,6 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-brand-blue: #2596be;
+  --color-brand-green: #a0d053;
+}
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;

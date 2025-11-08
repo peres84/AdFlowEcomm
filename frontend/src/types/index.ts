@@ -1,3 +1,7 @@
+/**
+ * Common types for ProductFlow application
+ */
+
 export interface FormData {
   productName: string;
   category: string;
@@ -12,7 +16,7 @@ export interface FormData {
 
 export interface GeneratedImage {
   id: string;
-  scenario: string;
+  scenario: 'hook' | 'problem' | 'solution' | 'cta';
   useCase: string;
   prompt: string;
   imageUrl: string;
@@ -21,7 +25,7 @@ export interface GeneratedImage {
 }
 
 export interface SceneDescription {
-  scenario: string;
+  scenario: 'hook' | 'problem' | 'solution' | 'cta';
   duration: number;
   visualDescription: string;
   cameraWork: string;
@@ -34,23 +38,15 @@ export interface SceneDescription {
 }
 
 export interface SceneVideo {
-  scenario: string;
+  scenario: 'hook' | 'problem' | 'solution' | 'cta';
   videoUrl: string;
   duration: number;
-  status: string;
+  status: 'generating' | 'completed' | 'failed';
   createdAt: string;
 }
 
-export interface SessionData {
-  sessionId: string;
-  createdAt: string;
-  expiresAt: string;
-  formData?: FormData;
-  productImageUrl?: string;
-  logoImageUrl?: string;
-  generatedImages?: GeneratedImage[];
-  selectedImages?: Record<string, string>;
-  sceneDescriptions?: SceneDescription[];
-  sceneVideos?: SceneVideo[];
-  finalVideoUrl?: string;
+export interface ApiError {
+  error: boolean;
+  message: string;
+  details?: string;
 }

@@ -1,73 +1,102 @@
-# React + TypeScript + Vite
+# ProductFlow Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite application for ProductFlow - an AI-powered product video generator.
 
-Currently, two official plugins are available:
+## Project Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+frontend/
+├── src/
+│   ├── assets/          # Static assets (logo, images)
+│   ├── components/      # Reusable React components
+│   ├── pages/           # Page components
+│   ├── services/        # API service layer
+│   ├── types/           # TypeScript type definitions
+│   ├── utils/           # Utility functions
+│   ├── App.tsx          # Main app component with routing
+│   ├── main.tsx         # Application entry point
+│   └── index.css        # Global styles with Tailwind
+├── public/              # Public static files
+└── package.json         # Dependencies and scripts
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Features
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **React 19** with TypeScript for type-safe development
+- **Vite** for fast development and optimized builds
+- **React Router** for client-side routing
+- **TailwindCSS** for styling with brand colors
+- **Axios** for API communication
+- **Session Management** with localStorage
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Brand Colors
+
+- Primary Blue: `#2596be` (accessible via `text-brand-blue` or `bg-brand-blue`)
+- Secondary Green: `#a0d053` (accessible via `text-brand-green` or `bg-brand-green`)
+
+## Routes
+
+- `/` - Landing page
+- `/onboarding` - Product information form
+- `/upload` - Product image and logo upload
+- `/images` - Generated image gallery
+- `/scenes` - Scene description review
+- `/videos` - Video scene review
+- `/final` - Final video preview and download
+
+## Session Management
+
+The application uses localStorage to maintain a session ID across the workflow:
+- Session ID is automatically generated on first visit
+- Persists across page refreshes
+- Used for all API requests to maintain state
+
+## API Service
+
+The `services/api.ts` file provides a centralized API layer with:
+- Axios instance with base URL configuration
+- Request interceptor to add session ID
+- Response interceptor for error handling
+- Typed API methods for all endpoints
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+
+# Lint code
+npm run lint
 ```
+
+## Environment Variables
+
+Create a `.env` file based on `.env.example`:
+
+```
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+## TypeScript
+
+The project uses TypeScript with strict mode enabled. Type definitions are located in `src/types/index.ts`.
+
+## Next Steps
+
+Future tasks will implement:
+- Landing page component
+- Onboarding form with validation
+- File upload with drag-and-drop
+- Image gallery with regeneration
+- Scene description review
+- Video generation and review
+- Final video preview and download
