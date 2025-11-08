@@ -6,17 +6,48 @@ Complete documentation for the AdFlowEcomm video generation system.
 
 ## 📚 Main Documentation
 
-### [VIDEO_RW_API_FLOW.md](VIDEO_RW_API_FLOW.md)
-**Complete Runware API Integration Guide**
+### [COMPLETE_VIDEO_WORKFLOW.md](COMPLETE_VIDEO_WORKFLOW.md) ⭐ START HERE
+**End-to-End Video Generation Guide**
 
-Step-by-step guide for implementing video generation with Runware API:
+Complete workflow combining Runware (video) + Mirelo (audio):
+- ✅ Step-by-step: Image → Video → Audio → Final Video
+- Quick start guide (~6-7 minutes total)
+- File organization and structure
+- Customization options
+- Troubleshooting guide
+- Best practices
+
+**Use this when:** Creating complete videos with audio from start to finish
+
+**Perfect for:** First-time users, complete workflow understanding
+
+---
+
+### [VIDEO_RW_API_FLOW.md](VIDEO_RW_API_FLOW.md)
+**Runware API Integration Guide (Detailed)**
+
+Deep dive into Runware video generation:
 - ✅ Verified working configuration (MiniMax, 244s generation)
 - Complete workflow (upload → generate → poll → download)
 - Request/response structures
 - Error handling patterns
 - Full working code examples
 
-**Use this when:** Implementing video generation in your fullstack application
+**Use this when:** Implementing video generation or troubleshooting Runware API
+
+---
+
+### [MIRELO_AUDIO_FLOW.md](MIRELO_AUDIO_FLOW.md)
+**Mirelo Audio Generation Guide (Detailed)**
+
+Deep dive into Mirelo audio generation:
+- ✅ 5-step workflow (create asset → upload → generate → download → merge)
+- Video-audio merging with FFmpeg
+- Text prompt examples for different video types
+- Parameter tuning guide
+- Error handling patterns
+
+**Use this when:** Implementing audio generation or troubleshooting Mirelo API
 
 ---
 
@@ -29,24 +60,7 @@ Complete reference for available video models on Runware:
 - Payload parameters
 - Model-specific requirements
 
-**Use this when:** Choosing which video model to use or troubleshooting model errors
-
----
-
-### [MIRELO_AUDIO_FLOW.md](MIRELO_AUDIO_FLOW.md)
-**Mirelo.ai Audio Generation Guide**
-
-Complete guide for adding AI-generated sound effects to videos:
-- ✅ 5-step workflow (create asset → upload → generate → download → merge)
-- Video-audio merging with FFmpeg
-- Text prompt examples for different video types
-- Parameter tuning guide
-- Error handling patterns
-- Integration with ProductFlow
-
-**Use this when:** Adding audio/music to generated videos and creating final video files
-
-**Output:** Complete video with audio ready for use!
+**Use this when:** Choosing which video model to use
 
 ---
 
