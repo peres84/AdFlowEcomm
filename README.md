@@ -596,9 +596,10 @@ For support, please:
 ---
 
 <div align="center">
-  Made with ❤️ by the ProductFlow Team
+  Made with ❤️ by the AdFlowEcomm Team
   
   ⭐ Star us on GitHub if you find this project useful!
 </div>
+
 
 
