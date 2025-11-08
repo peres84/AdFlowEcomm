@@ -22,6 +22,8 @@ yarn-error.log*
 example.py
 tester.py
 testing/
+imgs_test/
+results/
 
 #Sensitive data files
 *.pem
