@@ -119,6 +119,12 @@ helper.download_video(result["videoURL"], "output.mp4")
 
 **Purpose:** Generate and stitch 4-scene product videos
 
+---
+
+### 5. Video-Audio Merging (`video_audio_merger.py`)
+
+**Purpose:** Merge video and audio files using FFmpeg
+
 **Main Class:**
 ```python
 from scripts.scene_generator import MultiSceneGenerator, create_standard_scenes
@@ -151,6 +157,41 @@ final_video = generator.generate_complete_video(
 - Automatic FFmpeg stitching
 - Progress tracking
 - Error recovery
+
+---
+
+### 5. Video-Audio Merging (`video_audio_merger.py`)
+
+**Purpose:** Merge video and audio files using FFmpeg
+
+**Main Function:**
+```python
+from scripts.utils.video_audio_merger import merge_video_audio
+
+success = merge_video_audio(
+    video_path="video.mp4",
+    audio_path="audio.mp3",
+    output_path="final_video.mp4"
+)
+```
+
+**All Functions:**
+- `merge_video_audio()` - Merge video and audio with full control
+- `replace_audio()` - Replace existing audio track
+- `add_background_music()` - Mix background music with original audio
+- `extract_audio()` - Extract audio from video
+- `get_video_info()` - Get video metadata
+- `check_ffmpeg_installed()` - Verify FFmpeg availability
+- `quick_merge()` - Quick merge with defaults
+
+**Features:**
+- No video re-encoding (fast, lossless)
+- Customizable audio codec and bitrate
+- Background music mixing
+- Audio extraction
+- FFmpeg validation
+
+**Use Case:** Adding AI-generated audio (Mirelo) to generated videos (Runware)
 
 ---
 

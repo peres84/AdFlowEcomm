@@ -18,14 +18,16 @@ import requests
 import json
 import os
 import time
+import subprocess
 from dotenv import load_dotenv
 
 # ---------------------------------------
 # 🔧 CONFIGURATION
 # ---------------------------------------
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-ROOT_DIR = os.path.dirname(SCRIPT_DIR)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))  # scripts/testing_audio/
+SCRIPTS_DIR = os.path.dirname(SCRIPT_DIR)  # scripts/
+ROOT_DIR = os.path.dirname(SCRIPTS_DIR)  # project root
 ENV_PATH = os.path.join(ROOT_DIR, ".env")
 
 load_dotenv(ENV_PATH)
@@ -33,7 +35,7 @@ load_dotenv(ENV_PATH)
 MIRELO_API_URL = "https://api.mirelo.ai"
 API_KEY = os.getenv("MIRELO_API_KEY")
 
-# Input video (from Runware generation)
+# Input video (from Runware generation in testing_audio/results/)
 VIDEO_PATH = os.path.join(SCRIPT_DIR, "results/d5d8763b-7c73-4d54-b9ca-23dbc50c8bf6.mp4")
 RESULTS_DIR = os.path.join(SCRIPT_DIR, "results")
 
@@ -217,6 +219,64 @@ def download_audio(url, save_path):
         return False
 
 
+def merge_video_audio(video_path, audio_path, output_path):
+    """
+    Step 5: Merge video and audio using FFmpeg.
+    
+    Args:
+        video_path: Path to video file
+        audio_path: Path to audio file
+        output_path: Path for output video with audio
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    print(f"\n🎬 Step 5: Merging video and audio...")
+    print(f"   Video: {os.path.basename(video_path)}")
+    print(f"   Audio: {os.path.basename(audio_path)}")
+    
+    try:
+        # FFmpeg command to merge video and audio
+        # -i video.mp4 -i audio.mp3 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 output.mp4
+        cmd = [
+            "ffmpeg",
+            "-i", video_path,      # Input video
+            "-i", audio_path,      # Input audio
+            "-c:v", "copy",        # Copy video codec (no re-encoding)
+            "-c:a", "aac",         # Convert audio to AAC
+            "-map", "0:v:0",       # Map video from first input
+            "-map", "1:a:0",       # Map audio from second input
+            "-shortest",           # End when shortest stream ends
+            "-y",                  # Overwrite output file
+            output_path
+        ]
+        
+        # Run FFmpeg
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        
+        print(f"✅ Video and audio merged successfully!")
+        print(f"   Output: {output_path}")
+        return True
+        
+    except subprocess.CalledProcessError as e:
+        print(f"❌ FFmpeg error: {e.stderr}")
+        return False
+    except FileNotFoundError:
+        print(f"❌ FFmpeg not found. Please install FFmpeg:")
+        print(f"   Windows: choco install ffmpeg")
+        print(f"   Mac: brew install ffmpeg")
+        print(f"   Linux: apt-get install ffmpeg")
+        return False
+    except Exception as e:
+        print(f"❌ Merge failed: {str(e)}")
+        return False
+
+
 def main():
     """Main workflow for Mirelo audio generation."""
     
@@ -257,6 +317,7 @@ def main():
         # Step 4: Download generated audio files
         print(f"\n📥 Downloading {len(audio_urls)} audio file(s)...")
         
+        audio_files = []
         for i, audio_url in enumerate(audio_urls, 1):
             # Create filename based on customer asset ID
             filename = f"audio_{customer_asset_id}_sample{i}.mp3"
@@ -267,13 +328,43 @@ def main():
             
             if success:
                 print(f"   ✅ Saved: {filename}")
+                audio_files.append(save_path)
         
-        print(f"\n{'=' * 60}")
-        print(f"✅ AUDIO GENERATION COMPLETE!")
-        print(f"   Original video: {os.path.basename(VIDEO_PATH)}")
-        print(f"   Generated audio files: {len(audio_urls)}")
-        print(f"   Location: {RESULTS_DIR}")
-        print(f"{'=' * 60}")
+        # Step 5: Merge video and audio
+        if audio_files:
+            print(f"\n{'=' * 60}")
+            print(f"🎬 Creating final video with audio...")
+            
+            # Use first audio file for merging
+            audio_path = audio_files[0]
+            
+            # Create output filename
+            video_basename = os.path.splitext(os.path.basename(VIDEO_PATH))[0]
+            output_filename = f"{video_basename}_with_audio.mp4"
+            output_path = os.path.join(RESULTS_DIR, output_filename)
+            
+            # Merge video and audio
+            merge_success = merge_video_audio(VIDEO_PATH, audio_path, output_path)
+            
+            if merge_success:
+                print(f"\n{'=' * 60}")
+                print(f"✅ COMPLETE WORKFLOW FINISHED!")
+                print(f"   Original video: {os.path.basename(VIDEO_PATH)}")
+                print(f"   Generated audio files: {len(audio_files)}")
+                print(f"   Final video with audio: {output_filename}")
+                print(f"   Location: {RESULTS_DIR}")
+                print(f"{'=' * 60}")
+            else:
+                print(f"\n{'=' * 60}")
+                print(f"⚠️  Audio generated but merge failed")
+                print(f"   You can manually merge using FFmpeg")
+                print(f"   Video: {VIDEO_PATH}")
+                print(f"   Audio: {audio_path}")
+                print(f"{'=' * 60}")
+        else:
+            print(f"\n{'=' * 60}")
+            print(f"⚠️  No audio files downloaded")
+            print(f"{'=' * 60}")
         
     except Exception as e:
         print(f"\n❌ Error: {str(e)}")
