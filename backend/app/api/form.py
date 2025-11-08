@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 from app.models.form import FormSubmission, FormSubmissionResponse
 from app.services import session_manager
+from app.core import SessionNotFoundError, log_error
 import logging
 
 logger = logging.getLogger(__name__)
@@ -30,11 +31,7 @@ async def submit_form(form_data: FormSubmission):
         session = session_manager.get_session(form_data.session_id)
         
         if not session:
-            logger.warning(f"Form submission failed: Session not found - {form_data.session_id}")
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Session not found or expired. Please start a new session."
-            )
+            raise SessionNotFoundError(form_data.session_id)
         
         # Update session with form data
         session.product_name = form_data.product_name
@@ -51,10 +48,11 @@ async def submit_form(form_data: FormSubmission):
         success = session_manager.update_session(form_data.session_id, session)
         
         if not success:
-            logger.error(f"Failed to update session: {form_data.session_id}")
-            raise HTTPException(
+            from app.core import ProductFlowError
+            raise ProductFlowError(
+                message="Failed to save form data. Please try again.",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to save form data. Please try again."
+                error_code="SESSION_UPDATE_FAILED"
             )
         
         logger.info(f"Form data saved successfully for session: {form_data.session_id}")
@@ -65,11 +63,10 @@ async def submit_form(form_data: FormSubmission):
             session_id=form_data.session_id
         )
         
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error in form submission: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred. Please try again."
+    except (SessionNotFoundError, Exception) as e:
+        log_error(
+            e,
+            context={"endpoint": "/api/form/submit"},
+            session_id=form_data.session_id
         )
+        raise

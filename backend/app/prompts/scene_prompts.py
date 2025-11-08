@@ -10,7 +10,7 @@ from typing import Dict, Any, List
 def get_scene_description_generation_prompt(
     form_data: Dict[str, Any],
     product_analysis: Dict[str, Any],
-    selected_images_analysis: Dict[str, List[str]],
+    selected_images_analysis: Dict[str, str],
     has_logo: bool = False
 ) -> str:
     """
@@ -32,7 +32,7 @@ def get_scene_description_generation_prompt(
     brand_tone = form_data.get('brand_tone', 'Professional')
     brand_colors = form_data.get('brand_colors', [])
     brand_color_str = ', '.join(brand_colors) if brand_colors else 'brand colors'
-    website = form_data.get('website', 'website')
+    website = form_data.get('website_url', 'website')
     scene_description = form_data.get('scene_description', 'professional setting')
     target_platform = form_data.get('target_platform', 'social media')
     
@@ -41,10 +41,10 @@ def get_scene_description_generation_prompt(
     product_desc = product_analysis.get('description', 'product')
     
     # Format selected images analysis
-    hook_analysis = selected_images_analysis.get('hook', ['No analysis available'])[0] if selected_images_analysis.get('hook') else 'No analysis available'
-    problem_analysis = selected_images_analysis.get('problem', ['No analysis available'])[0] if selected_images_analysis.get('problem') else 'No analysis available'
-    solution_analysis = selected_images_analysis.get('solution', ['No analysis available'])[0] if selected_images_analysis.get('solution') else 'No analysis available'
-    cta_analysis = selected_images_analysis.get('cta', ['No analysis available'])[0] if selected_images_analysis.get('cta') else 'No analysis available'
+    hook_analysis = selected_images_analysis.get('hook', 'No analysis available')
+    problem_analysis = selected_images_analysis.get('problem', 'No analysis available')
+    solution_analysis = selected_images_analysis.get('solution', 'No analysis available')
+    cta_analysis = selected_images_analysis.get('cta', 'No analysis available')
     
     logo_status = "YES" if has_logo else "NO"
     logo_note = "Logo should be prominently featured in appropriate scenes" if has_logo else "No logo integration needed"

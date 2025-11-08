@@ -1,6 +1,12 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, status
+from fastapi import APIRouter, UploadFile, File, Form, status
 from app.models.upload import FileUploadResponse, UploadError
 from app.services import session_manager
+from app.core import (
+    SessionNotFoundError,
+    FileUploadError,
+    ValidationError,
+    log_error
+)
 import os
 import logging
 from PIL import Image
@@ -27,21 +33,21 @@ def validate_image_file(file: UploadFile) -> None:
         file: The uploaded file
         
     Raises:
-        HTTPException: If validation fails
+        ValidationError: If validation fails
     """
     # Check file extension
     file_ext = os.path.splitext(file.filename)[1].lower()
     if file_ext not in ALLOWED_EXTENSIONS:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid file type. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}"
+        raise ValidationError(
+            message=f"Invalid file type. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}",
+            field="file"
         )
     
     # Check content type
     if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File must be an image"
+        raise ValidationError(
+            message="File must be an image",
+            field="file"
         )
 
 
@@ -100,9 +106,9 @@ def compress_image(
         
     except Exception as e:
         logger.error(f"Failed to compress image: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to process image: {str(e)}"
+        raise FileUploadError(
+            message=f"Failed to process image: {str(e)}",
+            filename=os.path.basename(image_path)
         )
 
 
@@ -136,9 +142,9 @@ async def save_uploaded_file(
         
         # Check file size
         if len(contents) > MAX_FILE_SIZE_BYTES:
-            raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"File too large. Maximum size: {MAX_FILE_SIZE_MB}MB"
+            raise FileUploadError(
+                message=f"File too large. Maximum size: {MAX_FILE_SIZE_MB}MB",
+                filename=file.filename
             )
         
         with open(file_path, "wb") as f:
@@ -149,13 +155,13 @@ async def save_uploaded_file(
         
         return file_path, file_url
         
-    except HTTPException:
+    except (FileUploadError, ValidationError):
         raise
     except Exception as e:
         logger.error(f"Failed to save file: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to save file: {str(e)}"
+        raise FileUploadError(
+            message=f"Failed to save file: {str(e)}",
+            filename=file.filename
         )
 
 
@@ -185,11 +191,7 @@ async def upload_product_image(
         # Validate session
         session = session_manager.get_session(session_id)
         if not session:
-            logger.warning(f"Product upload failed: Session not found - {session_id}")
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Session not found or expired"
-            )
+            raise SessionNotFoundError(session_id)
         
         # Validate file
         validate_image_file(file)
@@ -206,10 +208,11 @@ async def upload_product_image(
         
         success = session_manager.update_session(session_id, session)
         if not success:
-            logger.error(f"Failed to update session with product image: {session_id}")
-            raise HTTPException(
+            from app.core import ProductFlowError
+            raise ProductFlowError(
+                message="Failed to save image to session",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to save image to session"
+                error_code="SESSION_UPDATE_FAILED"
             )
         
         logger.info(f"Product image uploaded successfully for session: {session_id}")
@@ -224,14 +227,15 @@ async def upload_product_image(
             dimensions={"width": dimensions[0], "height": dimensions[1]}
         )
         
-    except HTTPException:
+    except (SessionNotFoundError, ValidationError, FileUploadError):
         raise
     except Exception as e:
-        logger.error(f"Unexpected error in product image upload: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred during upload"
+        log_error(
+            e,
+            context={"endpoint": "/api/upload/product"},
+            session_id=session_id
         )
+        raise
 
 
 @router.post("/logo", response_model=FileUploadResponse)
@@ -260,11 +264,7 @@ async def upload_logo_image(
         # Validate session
         session = session_manager.get_session(session_id)
         if not session:
-            logger.warning(f"Logo upload failed: Session not found - {session_id}")
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Session not found or expired"
-            )
+            raise SessionNotFoundError(session_id)
         
         # Validate file
         validate_image_file(file)
@@ -281,10 +281,11 @@ async def upload_logo_image(
         
         success = session_manager.update_session(session_id, session)
         if not success:
-            logger.error(f"Failed to update session with logo image: {session_id}")
-            raise HTTPException(
+            from app.core import ProductFlowError
+            raise ProductFlowError(
+                message="Failed to save logo to session",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to save logo to session"
+                error_code="SESSION_UPDATE_FAILED"
             )
         
         logger.info(f"Logo image uploaded successfully for session: {session_id}")
@@ -299,11 +300,12 @@ async def upload_logo_image(
             dimensions={"width": dimensions[0], "height": dimensions[1]}
         )
         
-    except HTTPException:
+    except (SessionNotFoundError, ValidationError, FileUploadError):
         raise
     except Exception as e:
-        logger.error(f"Unexpected error in logo image upload: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred during upload"
+        log_error(
+            e,
+            context={"endpoint": "/api/upload/logo"},
+            session_id=session_id
         )
+        raise
