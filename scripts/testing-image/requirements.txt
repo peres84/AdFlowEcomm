@@ -1,0 +1,17 @@
+# Runware AI SDK
+runware>=0.4.30
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Async HTTP client for downloading images/videos
+aiohttp>=3.9.0
+
+# Async file operations
+aiofiles>=23.0.0
+
+# Note: FFmpeg is required for video merging (test_merge_videos.py)
+# but must be installed separately from your system package manager:
+# - Windows: Download from https://ffmpeg.org/download.html or use 'choco install ffmpeg'
+# - macOS: brew install ffmpeg
+# - Linux: sudo apt-get install ffmpeg
