@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 import asyncio
-from app.api import session
+from app.api import session, form
 from app.services import session_manager
 
 # Load environment variables
@@ -55,6 +55,7 @@ app.mount("/outputs", StaticFiles(directory="outputs"), name="outputs")
 
 # Include routers
 app.include_router(session.router)
+app.include_router(form.router)
 
 @app.get("/")
 async def root():
