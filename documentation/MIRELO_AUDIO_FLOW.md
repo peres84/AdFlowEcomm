@@ -784,7 +784,7 @@ scripts/testing_audio/
 The video-audio merging feature requires FFmpeg to be installed:
 
 **Installation:**
-- **Windows:** `choco install ffmpeg`
+- **Windows:** `choco install ffmpeg` or download from [ffmpeg.org](https://ffmpeg.org/download.html)
 - **Mac:** `brew install ffmpeg`
 - **Linux:** `apt-get install ffmpeg`
 
@@ -801,4 +801,49 @@ ffmpeg -version
 
 ---
 
-**Last Updated:** Based on Mirelo.ai API documentation + FFmpeg video merging
+## 🔧 Troubleshooting
+
+### FFmpeg AAC Encoder Error
+
+**Error Message:**
+```
+The encoder 'aac' is experimental but experimental codecs are not enabled
+```
+
+**Solution:**
+The script automatically handles this by:
+1. First trying AAC encoding with `-strict -2` flag (for older FFmpeg)
+2. If that fails, falling back to copying the audio codec
+
+**Manual Fix (if needed):**
+```bash
+# Update FFmpeg to latest version
+choco upgrade ffmpeg  # Windows
+brew upgrade ffmpeg   # Mac
+```
+
+### Mirelo Output Format
+
+**Note:** Mirelo returns MP4 files (not pure audio files) that contain:
+- Video stream (from your original video)
+- Audio stream (AI-generated audio)
+
+The merge function extracts only the audio stream using `-map 1:a:0`.
+
+### Common Issues
+
+**Issue:** "No video found in vid_test/"
+- **Solution:** Add a video file to `scripts/testing_audio/vid_test/`
+- Supported formats: MP4, AVI, MOV, MKV, WEBM, FLV
+
+**Issue:** "FFmpeg not found"
+- **Solution:** Install FFmpeg (see installation instructions above)
+- Verify with `ffmpeg -version`
+
+**Issue:** Merge fails with old FFmpeg
+- **Solution:** Script automatically tries alternative method (audio copy)
+- Or update FFmpeg to latest version
+
+---
+
+**Last Updated:** Based on Mirelo.ai API documentation + FFmpeg video merging + troubleshooting

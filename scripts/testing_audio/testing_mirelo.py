@@ -263,7 +263,7 @@ def merge_video_audio(video_path, audio_path, output_path):
     
     Args:
         video_path: Path to video file
-        audio_path: Path to audio file
+        audio_path: Path to audio file (may contain video+audio from Mirelo)
         output_path: Path for output video with audio
         
     Returns:
@@ -275,15 +275,16 @@ def merge_video_audio(video_path, audio_path, output_path):
     
     try:
         # FFmpeg command to merge video and audio
-        # -i video.mp4 -i audio.mp3 -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 output.mp4
+        # Note: Mirelo returns MP4 with video+audio, we extract audio stream
         cmd = [
             "ffmpeg",
-            "-i", video_path,      # Input video
-            "-i", audio_path,      # Input audio
+            "-i", video_path,      # Input video (original)
+            "-i", audio_path,      # Input audio (from Mirelo, may have video too)
             "-c:v", "copy",        # Copy video codec (no re-encoding)
             "-c:a", "aac",         # Convert audio to AAC
+            "-strict", "-2",       # Allow experimental AAC encoder (for older FFmpeg)
             "-map", "0:v:0",       # Map video from first input
-            "-map", "1:a:0",       # Map audio from second input
+            "-map", "1:a:0",       # Map audio from second input (audio stream only)
             "-shortest",           # End when shortest stream ends
             "-y",                  # Overwrite output file
             output_path
@@ -303,7 +304,32 @@ def merge_video_audio(video_path, audio_path, output_path):
         
     except subprocess.CalledProcessError as e:
         print(f"❌ FFmpeg error: {e.stderr}")
-        return False
+        print(f"\n💡 Trying alternative method...")
+        
+        # Try alternative: use libmp3lame or copy audio codec
+        try:
+            cmd_alt = [
+                "ffmpeg",
+                "-i", video_path,
+                "-i", audio_path,
+                "-c:v", "copy",
+                "-c:a", "copy",    # Try copying audio codec instead
+                "-map", "0:v:0",
+                "-map", "1:a:0",
+                "-shortest",
+                "-y",
+                output_path
+            ]
+            
+            result = subprocess.run(cmd_alt, capture_output=True, text=True, check=True)
+            print(f"✅ Video and audio merged successfully (alternative method)!")
+            print(f"   Output: {output_path}")
+            return True
+            
+        except subprocess.CalledProcessError as e2:
+            print(f"❌ Alternative method also failed: {e2.stderr}")
+            return False
+        
     except FileNotFoundError:
         print(f"❌ FFmpeg not found. Please install FFmpeg:")
         print(f"   Windows: choco install ffmpeg")
