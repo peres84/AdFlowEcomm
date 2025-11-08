@@ -33,9 +33,26 @@ Complete reference for available video models on Runware:
 
 ---
 
+### [MIRELO_AUDIO_FLOW.md](MIRELO_AUDIO_FLOW.md)
+**Mirelo.ai Audio Generation Guide**
+
+Complete guide for adding AI-generated sound effects to videos:
+- ✅ 5-step workflow (create asset → upload → generate → download → merge)
+- Video-audio merging with FFmpeg
+- Text prompt examples for different video types
+- Parameter tuning guide
+- Error handling patterns
+- Integration with ProductFlow
+
+**Use this when:** Adding audio/music to generated videos and creating final video files
+
+**Output:** Complete video with audio ready for use!
+
+---
+
 ## 🛠️ Helper Functions
 
-### [../scripts/README.md](../scripts/README.md)
+### [../scripts/utils/README.md](../scripts/utils/README.md)
 **Helper Functions - Complete Reference**
 
 All helper utilities for video generation:
@@ -43,6 +60,7 @@ All helper utilities for video generation:
 - Format conversion (`extension_changer_img.py`)
 - Video generation (`video_helpers.py`)
 - Multi-scene generation (`scene_generator.py`)
+- Video-audio merging (`video_audio_merger.py`) ✨
 
 Includes quick start examples, verification status, and integration guides.
 
@@ -67,16 +85,19 @@ Complete specifications for the ProductFlow application:
 
 ## 🧪 Testing & Examples
 
-### [../testing/](../testing/)
-**Working Code Examples**
+### [../scripts/testing_video/](../scripts/testing_video/)
+**Video Generation Testing**
 
-Verified working examples:
-- `testing_runware.py` - ✅ Basic single video generation (verified)
-- `example_using_helpers.py` - Using helper functions
-- `example_4_scenes.py` - Complete 4-scene workflow
-- `test_fastest_models.py` - Model comparison testing
+- `testing_runware_.py` - ✅ Runware video generation (verified working)
+
+### [../scripts/testing_audio/](../scripts/testing_audio/)
+**Audio Generation Testing**
+
+- `testing_mirelo.py` - ✅ Mirelo audio generation + video merging (complete workflow)
 
 **Use this when:** Looking for working code to test or reference
+
+**Note:** Testing scripts now include complete workflows with video-audio merging!
 
 ---
 
@@ -84,7 +105,8 @@ Verified working examples:
 
 **I want to...**
 
-- **Understand the API flow** → [VIDEO_RW_API_FLOW.md](VIDEO_RW_API_FLOW.md)
+- **Generate videos** → [VIDEO_RW_API_FLOW.md](VIDEO_RW_API_FLOW.md)
+- **Add audio to videos** → [MIRELO_AUDIO_FLOW.md](MIRELO_AUDIO_FLOW.md)
 - **Use helper functions** → [../scripts/README.md](../scripts/README.md)
 - **Choose a video model** → [video_models.md](video_models.md)
 - **See working examples** → [../testing/](../testing/)
@@ -96,9 +118,17 @@ Verified working examples:
 
 All documentation is based on tested and verified code:
 
+**Video Generation (Runware):**
 - ✅ MiniMax model working (244s generation time)
 - ✅ Complete API flow documented
 - ✅ Helper functions tested
 - ✅ Examples verified
 
-**Last Updated:** Based on successful test runs with Runware API
+**Audio Generation (Mirelo):**
+- ✅ Testing script created (`scripts/testing_audio/testing_mirelo.py`)
+- ✅ Complete 5-step workflow documented
+- ✅ Video-audio merging integrated
+- ✅ Helper utility created (`video_audio_merger.py`)
+- ⏳ Awaiting verification with actual API
+
+**Last Updated:** Based on successful test runs and API documentation
