@@ -50,6 +50,7 @@ cp .env.example .env    # macOS/Linux
 ```
 OPENAI_API_KEY=your-openai-api-key
 RUNWARE_API_KEY=your-runware-api-key
+MIRELO_API_KEY=your-mirelo-api-key
 ```
 
 ### Running the Backend
