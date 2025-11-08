@@ -3,15 +3,21 @@ Mirelo.ai Audio Generation Testing Script
 
 ✅ TESTING CONFIGURATION:
 - Service: Mirelo.ai (AI-powered sound effects generation)
-- Input: Video file (MP4)
-- Output: Audio file with generated sound effects
+- Input: First video found in vid_test/ folder
+- Output: Audio file + Video with audio merged
 - Model: v1.5 (default)
 
 This script demonstrates the complete workflow:
-1. Create customer asset (get upload URL)
-2. Upload video file to Mirelo
-3. Generate sound effects from video
-4. Download generated audio
+1. Find first video in vid_test/ folder
+2. Create customer asset (get upload URL)
+3. Upload video file to Mirelo
+4. Generate sound effects from video
+5. Download generated audio to results/
+6. Merge video + audio → Save to results/
+
+File Organization:
+- vid_test/          → Input videos (original files stay here)
+- results/           → Generated audio + final videos with audio
 """
 
 import requests
@@ -35,12 +41,15 @@ load_dotenv(ENV_PATH)
 MIRELO_API_URL = "https://api.mirelo.ai"
 API_KEY = os.getenv("MIRELO_API_KEY")
 
-# Input video (from Runware generation in testing_audio/results/)
-VIDEO_PATH = os.path.join(SCRIPT_DIR, "results/d5d8763b-7c73-4d54-b9ca-23dbc50c8bf6.mp4")
+# Input video folder and results folder
+VID_TEST_DIR = os.path.join(SCRIPT_DIR, "vid_test")
 RESULTS_DIR = os.path.join(SCRIPT_DIR, "results")
 
+# Video path will be determined dynamically from vid_test folder
+VIDEO_PATH = None
+
 # Audio generation parameters
-TEXT_PROMPT = "Cinematic background music with smooth transitions, professional product showcase atmosphere"
+TEXT_PROMPT = "Christmas music and laughs that synchronize with the video itself"
 MODEL_VERSION = "1.5"  # v1.5 is the latest
 NUM_SAMPLES = 1  # Number of audio variations to generate
 DURATION = 10  # Duration in seconds (max 10)
@@ -55,6 +64,35 @@ def ensure_results_folder():
         print(f"📁 Created folder: {RESULTS_DIR}")
     else:
         print(f"📁 Using existing folder: {RESULTS_DIR}")
+
+
+def find_first_video():
+    """
+    Find the first video file in vid_test directory.
+    
+    Returns:
+        str: Path to first video file found, or None if no videos
+    """
+    if not os.path.exists(VID_TEST_DIR):
+        print(f"❌ vid_test directory not found: {VID_TEST_DIR}")
+        return None
+    
+    # Supported video extensions
+    video_extensions = ['.mp4', '.avi', '.mov', '.mkv', '.webm', '.flv']
+    
+    # Get all files in vid_test directory
+    files = os.listdir(VID_TEST_DIR)
+    
+    # Find first video file
+    for file in sorted(files):  # Sort for consistent behavior
+        if any(file.lower().endswith(ext) for ext in video_extensions):
+            video_path = os.path.join(VID_TEST_DIR, file)
+            print(f"📹 Found video: {file}")
+            return video_path
+    
+    print(f"❌ No video files found in {VID_TEST_DIR}")
+    print(f"   Supported formats: {', '.join(video_extensions)}")
+    return None
 
 
 def create_customer_asset(api_key):
@@ -288,12 +326,16 @@ def main():
         print("❌ Missing MIRELO_API_KEY in .env file.")
         return
     
-    # Validate video file
-    if not os.path.exists(VIDEO_PATH):
-        print(f"❌ Video not found at {VIDEO_PATH}")
-        print(f"   Please ensure you have a generated video from Runware first.")
+    # Find first video in vid_test directory
+    print(f"\n📂 Looking for videos in: {VID_TEST_DIR}")
+    video_path = find_first_video()
+    
+    if not video_path:
+        print(f"\n❌ No video found!")
+        print(f"   Please add a video file to: {VID_TEST_DIR}")
         return
     
+    # Ensure results folder exists
     ensure_results_folder()
     
     try:
@@ -301,7 +343,7 @@ def main():
         customer_asset_id, upload_url = create_customer_asset(API_KEY)
         
         # Step 2: Upload video
-        upload_video(upload_url, VIDEO_PATH)
+        upload_video(upload_url, video_path)
         
         # Step 3: Generate sound effects
         audio_urls = generate_sfx(
@@ -339,26 +381,30 @@ def main():
             audio_path = audio_files[0]
             
             # Create output filename
-            video_basename = os.path.splitext(os.path.basename(VIDEO_PATH))[0]
+            video_basename = os.path.splitext(os.path.basename(video_path))[0]
             output_filename = f"{video_basename}_with_audio.mp4"
             output_path = os.path.join(RESULTS_DIR, output_filename)
             
             # Merge video and audio
-            merge_success = merge_video_audio(VIDEO_PATH, audio_path, output_path)
+            merge_success = merge_video_audio(video_path, audio_path, output_path)
             
             if merge_success:
                 print(f"\n{'=' * 60}")
                 print(f"✅ COMPLETE WORKFLOW FINISHED!")
-                print(f"   Original video: {os.path.basename(VIDEO_PATH)}")
-                print(f"   Generated audio files: {len(audio_files)}")
-                print(f"   Final video with audio: {output_filename}")
-                print(f"   Location: {RESULTS_DIR}")
+                print(f"\n📁 File Organization:")
+                print(f"   Original video (unchanged): {VID_TEST_DIR}/{os.path.basename(video_path)}")
+                print(f"   Generated audio: {RESULTS_DIR}/{os.path.basename(audio_path)}")
+                print(f"   Final video with audio: {RESULTS_DIR}/{output_filename}")
+                print(f"\n📊 Summary:")
+                print(f"   Input: {os.path.basename(video_path)}")
+                print(f"   Audio samples generated: {len(audio_files)}")
+                print(f"   Output: {output_filename}")
                 print(f"{'=' * 60}")
             else:
                 print(f"\n{'=' * 60}")
                 print(f"⚠️  Audio generated but merge failed")
                 print(f"   You can manually merge using FFmpeg")
-                print(f"   Video: {VIDEO_PATH}")
+                print(f"   Video: {video_path}")
                 print(f"   Audio: {audio_path}")
                 print(f"{'=' * 60}")
         else:
