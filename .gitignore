@@ -21,8 +21,6 @@ yarn-error.log*
 .env
 example.py
 tester.py
-testing/
-imgs_test/
 results/
 
 #Sensitive data files
