@@ -1,4 +1,4 @@
-# ProductFlow - AI-Powered Product Video Generator
+# AdFlowEcomm - AI-Powered E-commerce Video Generator
 
 <div align="center">
   
@@ -31,11 +31,11 @@
 
 ---
 
-## 🎯 Overview Project
+## 🎯 Overview
 
-**ProductFlow** is an end-to-end AI-powered platform that automatically generates professional product advertisement videos. Simply upload your product image, provide some basic information, and let AI create a compelling 30-second video with four distinct scenes: Hook, Problem, Solution, and Call-to-Action.
+**AdFlowEcomm** is an end-to-end AI-powered platform that automatically generates professional product advertisement videos for e-commerce businesses. Simply upload your product image, provide some basic information, and let AI create a compelling 30-second video with four distinct scenes: Hook, Problem, Solution, and Call-to-Action.
 
-### What Makes ProductFlow Special?
+### What Makes AdFlowEcomm Special?
 
 - 🤖 **Fully Automated**: From image upload to final video, everything is AI-powered
 - 🎨 **Customizable**: Control brand colors, tone, and visual style
@@ -50,12 +50,12 @@
 
 ### Core Features
 
-- **🖼️ Image Generation**: AI-generated product images for each video scene using Runware API
-- **📝 Scene Description**: Detailed scene descriptions with camera work, lighting, and audio design
-- **🎥 Video Generation**: Parallel video generation for all four scenes using Luma AI
-- **🎞️ Video Merging**: Automatic merging of scenes into a final 30-second video
-- **🔄 Regeneration**: Regenerate individual images, scenes, or videos with custom feedback
-- **💾 Session Management**: Persistent sessions to save progress across the workflow
+- **??? Image Generation**: AI-generated product images for each video scene using Runware API
+- **?? Scene Description**: Detailed scene descriptions with camera work, lighting, and audio design
+- **?? Video Generation**: Parallel video generation for all four scenes using Luma AI
+- **??? Video Merging**: Automatic merging of scenes into a final 30-second video
+- **?? Regeneration**: Regenerate individual images, scenes, or videos with custom feedback
+- **?? Session Management**: Persistent sessions to save progress across the workflow
 
 ### User Experience
 
@@ -69,38 +69,38 @@
 
 ## 🏗️ Architecture
 
-ProductFlow follows a modern full-stack architecture with clear separation of concerns:
+AdFlowEcomm follows a modern full-stack architecture with clear separation of concerns:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Frontend (React)                      │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │Onboarding│  │  Upload  │  │  Images  │  │  Videos  │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-└────────────────────────┬────────────────────────────────────┘
-                         │ REST API
-┌────────────────────────┴────────────────────────────────────┐
-│                     Backend (FastAPI)                        │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │   Form   │  │  Upload  │  │  Images  │  │  Videos  │   │
-│  │   API    │  │   API    │  │   API    │  │   API    │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │              Service Layer                            │  │
-│  │  • Session Manager  • OpenAI Service                 │  │
-│  │  • Runware Service  • Luma Service                   │  │
-│  │  • FFmpeg Service   • Error Handling                 │  │
-│  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                         │
-┌────────────────────────┴────────────────────────────────────┐
-│                    External Services                         │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │  OpenAI  │  │ Runware  │  │ Luma AI  │  │  FFmpeg  │   │
-│  │  Vision  │  │   API    │  │   API    │  │  Local   │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-└─────────────────────────────────────────────────────────────┘
++-------------------------------------------------------------+
+�                        Frontend (React)                      �
+�  +----------+  +----------+  +----------+  +----------+   �
+�  �Onboarding�  �  Upload  �  �  Images  �  �  Videos  �   �
+�  +----------+  +----------+  +----------+  +----------+   �
++-------------------------------------------------------------+
+                         � REST API
++-------------------------------------------------------------+
+�                     Backend (FastAPI)                        �
+�  +----------+  +----------+  +----------+  +----------+   �
+�  �   Form   �  �  Upload  �  �  Images  �  �  Videos  �   �
+�  �   API    �  �   API    �  �   API    �  �   API    �   �
+�  +----------+  +----------+  +----------+  +----------+   �
+�                                                              �
+�  +------------------------------------------------------+  �
+�  �              Service Layer                            �  �
+�  �  � Session Manager  � OpenAI Service                 �  �
+�  �  � Runware Service  � Luma Service                   �  �
+�  �  � FFmpeg Service   � Error Handling                 �  �
+�  +------------------------------------------------------+  �
++-------------------------------------------------------------+
+                         �
++-------------------------------------------------------------+
+�                    External Services                         �
+�  +----------+  +----------+  +----------+  +----------+   �
+�  �  OpenAI  �  � Runware  �  � Luma AI  �  �  FFmpeg  �   �
+�  �  Vision  �  �   API    �  �   API    �  �  Local   �   �
+�  +----------+  +----------+  +----------+  +----------+   �
++-------------------------------------------------------------+
 ```
 
 ### Key Components
@@ -170,8 +170,8 @@ You'll need API keys for the following services:
 #### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/productflow.git
-cd productflow
+git clone https://github.com/yourusername/AdFlowEcomm.git
+cd AdFlowEcomm
 ```
 
 #### 2. Backend Setup
@@ -261,66 +261,66 @@ Frontend will be available at: `http://localhost:5173`
 ## 📁 Project Structure
 
 ```
-productflow/
-├── backend/                    # FastAPI backend
-│   ├── app/
-│   │   ├── api/               # API route handlers
-│   │   │   ├── form.py        # Form submission
-│   │   │   ├── upload.py      # File uploads
-│   │   │   ├── images.py      # Image generation
-│   │   │   ├── scenes.py      # Scene descriptions
-│   │   │   ├── videos.py      # Video generation
-│   │   │   └── session.py     # Session management
-│   │   ├── core/              # Core utilities
-│   │   │   ├── errors.py      # Error handling
-│   │   │   └── config.py      # Configuration
-│   │   ├── models/            # Pydantic models
-│   │   │   ├── form.py
-│   │   │   ├── scene.py
-│   │   │   ├── video.py
-│   │   │   └── session.py
-│   │   ├── services/          # Business logic
-│   │   │   ├── session_manager.py
-│   │   │   ├── openai_service.py
-│   │   │   ├── runware_service.py
-│   │   │   ├── luma_service.py
-│   │   │   ├── video_service.py
-│   │   │   └── ffmpeg_service.py
-│   │   ├── prompts/           # AI prompts
-│   │   └── main.py            # FastAPI app
-│   ├── uploads/               # Uploaded files
-│   ├── outputs/               # Generated videos
-│   ├── requirements.txt
-│   └── .env
-├── frontend/                   # React frontend
-│   ├── src/
-│   │   ├── pages/             # Page components
-│   │   │   ├── LandingPage.tsx
-│   │   │   ├── OnboardingForm.tsx
-│   │   │   ├── UploadPage.tsx
-│   │   │   ├── ImageGenerationLoading.tsx
-│   │   │   ├── ImageGallery.tsx
-│   │   │   ├── SceneDescriptionReview.tsx
-│   │   │   └── VideoGenerationLoading.tsx
-│   │   ├── services/          # API services
-│   │   │   └── api.ts
-│   │   ├── types/             # TypeScript types
-│   │   │   └── index.ts
-│   │   ├── utils/             # Utilities
-│   │   │   └── session.ts
-│   │   ├── App.tsx            # Main app component
-│   │   └── main.tsx           # Entry point
-│   ├── package.json
-│   └── vite.config.ts
-├── .kiro/                      # Kiro IDE specs
-│   └── specs/
-│       └── productflow-fullstack/
-│           ├── requirements.md
-│           ├── design.md
-│           └── tasks.md
-├── README.md
-├── LICENSE
-└── .gitignore
+AdFlowEcomm/
++-- backend/                    # FastAPI backend
+�   +-- app/
+�   �   +-- api/               # API route handlers
+�   �   �   +-- form.py        # Form submission
+�   �   �   +-- upload.py      # File uploads
+�   �   �   +-- images.py      # Image generation
+�   �   �   +-- scenes.py      # Scene descriptions
+�   �   �   +-- videos.py      # Video generation
+�   �   �   +-- session.py     # Session management
+�   �   +-- core/              # Core utilities
+�   �   �   +-- errors.py      # Error handling
+�   �   �   +-- config.py      # Configuration
+�   �   +-- models/            # Pydantic models
+�   �   �   +-- form.py
+�   �   �   +-- scene.py
+�   �   �   +-- video.py
+�   �   �   +-- session.py
+�   �   +-- services/          # Business logic
+�   �   �   +-- session_manager.py
+�   �   �   +-- openai_service.py
+�   �   �   +-- runware_service.py
+�   �   �   +-- luma_service.py
+�   �   �   +-- video_service.py
+�   �   �   +-- ffmpeg_service.py
+�   �   +-- prompts/           # AI prompts
+�   �   +-- main.py            # FastAPI app
+�   +-- uploads/               # Uploaded files
+�   +-- outputs/               # Generated videos
+�   +-- requirements.txt
+�   +-- .env
++-- frontend/                   # React frontend
+�   +-- src/
+�   �   +-- pages/             # Page components
+�   �   �   +-- LandingPage.tsx
+�   �   �   +-- OnboardingForm.tsx
+�   �   �   +-- UploadPage.tsx
+�   �   �   +-- ImageGenerationLoading.tsx
+�   �   �   +-- ImageGallery.tsx
+�   �   �   +-- SceneDescriptionReview.tsx
+�   �   �   +-- VideoGenerationLoading.tsx
+�   �   +-- services/          # API services
+�   �   �   +-- api.ts
+�   �   +-- types/             # TypeScript types
+�   �   �   +-- index.ts
+�   �   +-- utils/             # Utilities
+�   �   �   +-- session.ts
+�   �   +-- App.tsx            # Main app component
+�   �   +-- main.tsx           # Entry point
+�   +-- package.json
+�   +-- vite.config.ts
++-- .kiro/                      # Kiro IDE specs
+�   +-- specs/
+�       +-- AdFlowEcomm-fullstack/
+�           +-- requirements.md
+�           +-- design.md
+�           +-- tasks.md
++-- README.md
++-- LICENSE
++-- .gitignore
 ```
 
 ---
@@ -367,7 +367,7 @@ Visit `http://localhost:8000/docs` for interactive Swagger UI documentation.
 
 ## 🔄 Workflow
 
-ProductFlow follows a structured workflow with 8 main steps:
+AdFlowEcomm follows a structured workflow with 8 main steps:
 
 ### 1. Landing Page
 - Welcome screen with product overview
@@ -600,6 +600,3 @@ For support, please:
   
   ⭐ Star us on GitHub if you find this project useful!
 </div>
-
-
-
